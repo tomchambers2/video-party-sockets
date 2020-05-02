@@ -23,17 +23,20 @@ io.adapter(redisAdapter).on("connection", (socket) => {
   let roomName;
 
   socket
-    .on("join-room", (roomName) => {
-      socket.join(roomName);
+    .on("join-room", (_roomName) => {
+      roomName = _roomName;
+      socket.join(_roomName);
     })
     .on("client-user-moved", ({ sid, x, y }) => {
-      io.broadcast.emit("client-user-moved", { sid, x, y });
+      socket.broadcast.to(roomName).emit("client-user-moved", { sid, x, y });
     })
     .on("client-user-moved", ({ identity, active }) => {
-      io.broadcast.emit("client-user-moved", { identity, active });
+      socket.broadcast
+        .to(roomName)
+        .emit("client-user-moved", { identity, active });
     })
     .on("client-chat-message", function ({ identity, message, timestamp }) {
-      io.broadcast.emit("client-chat-message", {
+      socket.broadcast.to(roomName).emit("client-chat-message", {
         identity,
         message,
         timestamp,
