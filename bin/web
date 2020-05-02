@@ -24,6 +24,7 @@ io.adapter(redisAdapter).on("connection", (socket) => {
 
   socket
     .on("join-room", (_roomName) => {
+      console.log("joining", _roomName);
       roomName = _roomName;
       socket.join(_roomName);
     })
