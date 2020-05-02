@@ -28,6 +28,7 @@ io.adapter(redisAdapter).on("connection", (socket) => {
       socket.join(_roomName);
     })
     .on("client-user-moved", ({ sid, x, y }) => {
+      console.log("sending", sid, roomName);
       socket.broadcast.to(roomName).emit("client-user-moved", { sid, x, y });
     })
     .on("client-user-moved", ({ identity, active }) => {
