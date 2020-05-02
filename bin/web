@@ -1,38 +1,43 @@
 #!/usr/bin/env node
 
-const http = require('http')
-const express = require('express')
-const socketIO = require('socket.io')
-const socketRedis = require('socket.io-redis')
-const path = require('path')
-const moniker = require('moniker')
+const http = require("http");
+const express = require("express");
+const socketIO = require("socket.io");
+const socketRedis = require("socket.io-redis");
+const path = require("path");
 
-const PORT = process.env.PORT || 5000
-const REDIS_URL = process.env.REDIS_URL
-const REDIS_KEY = process.env.REDIS_KEY || 'chat-socket'
+const PORT = process.env.PORT || 5000;
+const REDIS_URL = process.env.REDIS_URL;
+const REDIS_KEY = process.env.REDIS_KEY || "chat-socket";
 
-const app = express()
-const server = http.createServer(app)
-const io = socketIO(server)
-const redisAdapter = socketRedis(REDIS_URL, { key: REDIS_KEY })
+const app = express();
+const server = http.createServer(app);
+const io = socketIO(server);
+const redisAdapter = socketRedis(REDIS_URL, { key: REDIS_KEY });
 
-app
-  .get('/', (req, res) => res.sendFile(path.resolve(__dirname, '../index.html')))
+app.get("/", (req, res) =>
+  res.sendFile(path.resolve(__dirname, "../index.html"))
+);
 
-io
-  .adapter(redisAdapter)
-  .on('connection', (socket) => {
-    const name = moniker.choose()
-    console.log(`User '${name}' connected`)
-    io.emit('chat message', `Welcome, new user ${name}!`)
-    socket
-      .on('disconnect', () => {
-        console.log(`User '${name}' disconnected`)
-        io.emit('chat message', `${name} left.`)
-      })
-      .on('chat message', function (msg) {
-        io.emit('chat message', `${name}: ${msg}`)
-      })
-  })
+io.adapter(redisAdapter).on("connection", (socket) => {
+  console.log(`User '${name}' connected`);
 
-server.listen(PORT, () => console.log(`Listening on ${PORT}`))
+  socket.join(roomName);
+
+  socket
+    .on("client-user-moved", ({ sid, x, y }) => {
+      io.broadcast.to(roomName).emit("client-user-moved", { sid, x, y });
+    })
+    .on("client-user-moved", ({ identity, active }) => {
+      io.broadcast.to(roomName).emit("client-user-moved", { identity, active });
+    })
+    .on("client-chat-message", function ({ identity, message, timestamp }) {
+      io.broadcast.to(roomName).emit("client-chat-message", {
+        identity,
+        message,
+        timestamp,
+      });
+    });
+});
+
+server.listen(PORT, () => console.log(`Listening on ${PORT}`));
