@@ -20,8 +20,6 @@ app.get("/", (req, res) =>
 );
 
 io.adapter(redisAdapter).on("connection", (socket) => {
-  console.log(`User '${name}' connected`);
-
   socket.join(roomName);
 
   socket
